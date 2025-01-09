@@ -1,70 +1,59 @@
 const express = require("express");
-const  mongooseConnection  = require("../src/config/mongooseConnection");
+const mongooseConnection = require("../src/config/mongooseConnection");
 const { User } = require("./models/UserModel");
 
 const app = express();
+app.use(express.json());
+//get the the all users
+app.get("/user", async (req, res) => {
+  const name = req.body.name;
+  console.log(name);
 
-mongooseConnection().then((data) => {
-  if (data) {
-    console.log("Database connected succesfuly");
-    app.listen(3000, () => {
-      console.log("server started on the port 3000");
-    });
-
-    app.post('/user',(req,res)=>{
-      const userdata={
-        firstName :"surendr",
-        lastName :"dhoni",
-        phoneNumber:8951693828
-      }
-      try{
-      const user = new User(userdata);
-      if(user.save()){
-        console.log(user);
-        res.send("data succefuly updated")
-      }else{
-        res.send("error while sveing the user details")
-      }}
-      catch(err){res.send(err.message)  }
-    })
-  } else {
-    console.log("error:server not started");
+  try {
+    const result = await User.find({ firstName: name });
+    result.length > 0
+      ? res.send(result)
+      : res.status(404).send("user not found");
+  } catch (error) {
+    res.status(400).send(`error while retrveing the users ${error.message}`);
   }
-}).catch((err)=>{console.log("error while connecting to server ",err.message);});
+});
+// delete the user by id findByIdAndDelete()
+app.delete("/user", async (req, res) => {
+  const id = req.body.id;
+  console.log(id);
 
-// const user = "id";
+  try {
+    const result = await User.findByIdAndDelete({ id });
+    result ? res.send(result) : res.status(404).send("user not found");
+  } catch (error) {
+    res.status(400).send(`error while retrveing the users ${error.message}`);
+  }
+});
 
-// app.get(`/user/:${user}`, (req, res) => {
-//   console.log(req.params);
-//   res.send("hi");
-// });
+// update the user by id findByIdAndUpdate() and any filed findOneAndUpdate 
 
-// app.get(`/user`, (req, res) => {
-//   console.log(req.query);
-//   res.send("hi2");
-// });
+app.patch("/user", async (req, res) => {
+  try {
+    const name = req.body.name;
+    const updatedUser = await User.findOneAndUpdate(
+      { firstName: name },
+      { firstName: "REDDYSUREsds" },
+      { returnDocument: "after",runValidators: true }
+    );
+    if (updatedUser) {
+      res.send(updatedUser);
+    } else {
+      res.status(400).send("user not found");
+    }
+  } catch (err) {
+    res.send(err.message);
+    console.log(err.message);
+  }
+});
 
-// app.get(`/ab?c`, (req, res) => {
-//   console.log(req.query);
-//   res.send("hi2");
-// });
-// app.listen(3000, () => {
-//   console.log("Server started on Port 3000");
-// });
-// app.use("/ganesh", (req, res) => {
-//   if (req.path == "/") {
-//     res.send("Welcome to Node JS");
-//   }
-//   res.send("This is from Other router");
-// });
-// const a = app.use("/start", (req, res1) => {
-//   if (req.path == "/welcome") {
-//     return res1.send("Welcome to Node JS");
-//   }
-//   if (req.path == "/welcome1") {
-//     return res1.send("Welcome to Node JS1");
-//   }
-//   return res1.send("This is From /");
-// });
-
-// console.log("thisis a",a);
+mongooseConnection().then(() =>
+  app.listen(7777, () => {
+    console.log("server listin on port 7777");
+  })
+);
