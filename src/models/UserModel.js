@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { isStrongPassword } = require("validator");
 
 const userschema = mongoose.Schema({
   firstName: { type: String ,
@@ -7,7 +8,9 @@ const userschema = mongoose.Schema({
     },
   lastName: { type: String ,required: true},
   phoneNumber: { type: Number  },
-  city: { type: Number ,required: true }
+  city: { type: Number  },
+  password:{type :String,required:true },
+  emailId:{type:String,required:true}
   
 });
 

@@ -2,6 +2,7 @@ const express = require("express");
 const mongooseConnection = require("../src/config/mongooseConnection");
 const { User } = require("./models/UserModel");
 const { validateAPI } = require("./Utils/ValidateAPI");
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(express.json());
@@ -57,12 +58,16 @@ app.post("/signup", async (req, res) => {
   try {
     const { firstName, lastName, emailId, password } = req.body;
 
+    // encrypting  the password to store DB
+    const passwordHash = await bcrypt.hash(password, 10);
+
+
     // Prepare data for user
     const data = {
       firstName: firstName,
       lastName: lastName,
       emailId: emailId,
-      password: password
+      password: passwordHash,
     };
 
     // Validate the input data
@@ -80,7 +85,39 @@ app.post("/signup", async (req, res) => {
     // Log error for debugging and respond with error message
     console.error(err);
     res.status(400).send({ error: err.message });
-  }})
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { password, emailId } = req.body;
+
+    // Ensure emailId and password are provided
+    if (!emailId || !password) {
+      return res.status(400).send("Email and password are required.");
+    }
+
+    // Find user by email
+    const userDetails = await User.findOne({ emailId });
+    
+    if (!userDetails) {
+      return res.status(401).send("Invalid credentials.");
+    }
+
+    // Compare the provided password with the stored hash
+    const isPasswordValid = await bcrypt.compare(password, userDetails.password);
+
+    if (isPasswordValid) {
+      return res.status(200).send("Login successful.");
+    } else {
+      return res.status(401).send("Invalid credentials.");
+    }
+  } catch (err) {
+    console.error(err);  // Log the error for debugging
+    return res.status(500).send("An error occurred during login.");
+  }
+});
+
 
 mongooseConnection().then(() =>
   app.listen(7777, () => {
