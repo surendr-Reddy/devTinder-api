@@ -3,58 +3,12 @@ const mongooseConnection = require("../src/config/mongooseConnection");
 const { User } = require("./models/UserModel");
 const { validateAPI } = require("./Utils/ValidateAPI");
 const bcrypt = require("bcrypt");
-const cookieparser =require('cookie-parser')
+const cookieparser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
-app.use(cookieparser())
-//get the the all users
-app.get("/user", async (req, res) => {
-  const name = req.body.name;
-  console.log(name);
-
-  try {
-    const result = await User.find({ firstName: name });
-    result.length > 0
-      ? res.send(result)
-      : res.status(404).send("user not found");
-  } catch (error) {
-    res.status(400).send(`error while retrveing the users ${error.message}`);
-  }
-});
-// delete the user by id findByIdAndDelete()
-app.delete("/user", async (req, res) => {
-  const id = req.body.id;
-  console.log(id);
-
-  try {
-    const result = await User.findByIdAndDelete({ id });
-    result ? res.send(result) : res.status(404).send("user not found");
-  } catch (error) {
-    res.status(400).send(`error while retrveing the users ${error.message}`);
-  }
-});
-
-// update the user by id findByIdAndUpdate() and any filed findOneAndUpdate 
-
-app.patch("/user", async (req, res) => {
-  try {
-    const name = req.body.name;
-    const updatedUser = await User.findOneAndUpdate(
-      { firstName: name },
-      { firstName: "REDDYSUREsds" },
-      { returnDocument: "after",runValidators: true }
-    );
-    if (updatedUser) {
-      res.send(updatedUser);
-    } else {
-      res.status(400).send("user not found");
-    }
-  } catch (err) {
-    res.send(err.message);
-    console.log(err.message);
-  }
-});
+app.use(cookieparser());
 
 app.post("/signup", async (req, res) => {
   try {
@@ -62,7 +16,6 @@ app.post("/signup", async (req, res) => {
 
     // encrypting  the password to store DB
     const passwordHash = await bcrypt.hash(password, 10);
-
 
     // Prepare data for user
     const data = {
@@ -101,32 +54,41 @@ app.post("/login", async (req, res) => {
 
     // Find user by email
     const userDetails = await User.findOne({ emailId });
-    
+
     if (!userDetails) {
       return res.status(401).send("Invalid credentials.");
     }
 
     // Compare the provided password with the stored hash
-    const isPasswordValid = await bcrypt.compare(password, userDetails.password);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      userDetails.password
+    );
 
     if (isPasswordValid) {
-res.cookie("token","vghvhgvhjvsdvdvh")
+      const jwtToken = await jwt.sign({ _id: userDetails._id }, "Suri@123");
 
+      res.cookie("token", jwtToken);
       return res.status(200).send("Login successful.");
     } else {
       return res.status(401).send("Invalid credentials.");
     }
   } catch (err) {
-    console.error(err);  // Log the error for debugging
+    console.error(err); // Log the error for debugging
     return res.status(500).send("An error occurred during login.");
   }
 });
 
-app.get("/profile",async (req,res)=>{
- console.log(
-  req.cookies)
-  res.send("cookies")
-})
+app.get("/profile", async (req, res) => {
+  const cookieVaule = req.cookies;
+  const { token } = cookieVaule;
+
+  const jwtCoolievarifiled = await jwt.verify(token, "Suri@123");
+  console.log("jwtCoolieVaule:", jwtCoolievarifiled);
+  const userDetils = await User.findById({ _id: jwtCoolievarifiled._id });
+
+  res.send(userDetils);
+});
 
 mongooseConnection().then(() =>
   app.listen(7777, () => {
