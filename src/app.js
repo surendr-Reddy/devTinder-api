@@ -3,9 +3,11 @@ const mongooseConnection = require("../src/config/mongooseConnection");
 const { User } = require("./models/UserModel");
 const { validateAPI } = require("./Utils/ValidateAPI");
 const bcrypt = require("bcrypt");
+const cookieparser =require('cookie-parser')
 
 const app = express();
 app.use(express.json());
+app.use(cookieparser())
 //get the the all users
 app.get("/user", async (req, res) => {
   const name = req.body.name;
@@ -108,6 +110,8 @@ app.post("/login", async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, userDetails.password);
 
     if (isPasswordValid) {
+res.cookie("token","vghvhgvhjvsdvdvh")
+
       return res.status(200).send("Login successful.");
     } else {
       return res.status(401).send("Invalid credentials.");
@@ -118,6 +122,11 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.get("/profile",async (req,res)=>{
+ console.log(
+  req.cookies)
+  res.send("cookies")
+})
 
 mongooseConnection().then(() =>
   app.listen(7777, () => {
