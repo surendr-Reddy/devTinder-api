@@ -5,6 +5,7 @@ const { validateAPI } = require("./Utils/ValidateAPI");
 const bcrypt = require("bcrypt");
 const cookieparser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const { authvalidate } = require("./middlewares/auth");
 
 const app = express();
 app.use(express.json());
@@ -75,23 +76,16 @@ app.post("/login", async (req, res) => {
     }
   } catch (err) {
     console.error(err); // Log the error for debugging
-    return res.status(500).send("An error occurred during login.");
+    return res.status(500).send("An error occurred during login."+err.message);
   }
 });
-
-app.get("/profile", async (req, res) => {
-  const cookieVaule = req.cookies;
-  const { token } = cookieVaule;
-
-  const jwtCoolievarifiled = await jwt.verify(token, "Suri@123");
-  console.log("jwtCoolieVaule:", jwtCoolievarifiled);
-  const userDetils = await User.findById({ _id: jwtCoolievarifiled._id });
-
-  res.send(userDetils);
+// added the auth Midelwear Varifiaction
+app.get("/profile", authvalidate,async (req, res) => {
+  res.send(req.user);
 });
 
 mongooseConnection().then(() =>
   app.listen(7777, () => {
-    console.log("server listin on port 7777");
+    console.log("Server listen on Port 7777");
   })
 );

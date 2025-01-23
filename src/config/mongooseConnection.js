@@ -4,7 +4,7 @@ const Dbconnection = async () => {
     "mongodb+srv://surendrareddy:12345Qwert@nodejsdb.9bik5.mongodb.net/testDB"
   );
 
-  if(connection){console.log("database conncted succfuly");
+  if(connection){console.log("Database conncted succesfuly");
   }else {console.log("error connecting to database");
   }
 };
