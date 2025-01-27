@@ -7,8 +7,7 @@ const authvalidate = async (req, res, next) => {
  if(!token){
     throw new Error("Invalid token credentials.")
  }
-    
-    const cookieValidate = await jwt.verify(token, "Suri@123"); 
+    const cookieValidate = await User.validateJWT(token)
     console.log(cookieValidate);
     
     if (!cookieValidate) {
@@ -16,7 +15,7 @@ const authvalidate = async (req, res, next) => {
     } else {
         console.log(cookieValidate);
         
-      const userDetalis = await User.findById(cookieValidate._id);
+      const userDetalis = await User.findById(cookieValidate.userId);
       if (!userDetalis) {
         throw new Error("User Not Found ");
       }

@@ -61,13 +61,13 @@ app.post("/login", async (req, res) => {
     }
 
     // Compare the provided password with the stored hash
-    const isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await userDetails.validatePassword(
       password,
       userDetails.password
     );
 
     if (isPasswordValid) {
-      const jwtToken = await jwt.sign({ _id: userDetails._id }, "Suri@123");
+      const jwtToken = await userDetails.getJwt()
 
       res.cookie("token", jwtToken);
       return res.status(200).send("Login successful.");
