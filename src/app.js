@@ -13,34 +13,36 @@ app.use(cookieparser());
 
 app.post("/signup", async (req, res) => {
   try {
-    const { firstName, lastName, emailId, password } = req.body;
+    const { password, ...otherFields } = req.body;
 
-    // encrypting  the password to store DB
+    // Input validation
+    validateAPI(req);
+
+    // Check if the email is already registered
+    const existingUser = await User.findOne({ emailId: otherFields.emailId });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email is already registered" });
+    }
+
+    // Hash the password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Prepare data for user
-    const data = {
-      firstName: firstName,
-      lastName: lastName,
-      emailId: emailId,
+    // Combine hashed password with other fields
+    const userData = {
+      ...otherFields,
       password: passwordHash,
     };
 
-    // Validate the input data
-    validateAPI(req);
+    // Create and save the user
+    const user = new User(userData);
+    await user.save();
 
-    // Create a new User instance
-    const user = new User(data);
-
-    // Save the user to the database
-    const savedUser = await user.save();
-
-    // Respond with success message
-    res.status(201).send("User successfully signed up");
+    // Respond with success
+    res.status(201).json({ message: "User successfully signed up", user });
   } catch (err) {
-    // Log error for debugging and respond with error message
+    // Handle errors
     console.error(err);
-    res.status(400).send({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

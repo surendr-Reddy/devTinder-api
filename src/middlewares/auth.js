@@ -7,15 +7,15 @@ const authvalidate = async (req, res, next) => {
  if(!token){
     throw new Error("Invalid token credentials.")
  }
-    const cookieValidate = await User.validateJWT(token)
-    console.log(cookieValidate);
+    const decoded = await User.validateJWT(token)
     
-    if (!cookieValidate) {
+    
+    if (!decoded) {
       throw new Error(" Invalid credentials.");
     } else {
-        console.log(cookieValidate);
         
-      const userDetalis = await User.findById(cookieValidate.userId);
+        
+      const userDetalis = await User.findById(decoded.userId);
       if (!userDetalis) {
         throw new Error("User Not Found ");
       }
