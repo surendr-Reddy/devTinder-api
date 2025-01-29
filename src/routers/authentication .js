@@ -1,30 +1,21 @@
 const express = require("express");
-const { validateAPI } = require("../Utils/ValidateAPI");
+const { validateAPI } = require("../utils/ValidateAPI");
 const { User } = require("../models/UserModel");
 const bcrypt = require("bcrypt");
 const authrouter = express.Router();
 
 authrouter.post("/signup", async (req, res) => {
   try {
-    const { password, ...otherFields } = req.body;
+    const userData = req.body;
 
     // Input validation
     validateAPI(req);
 
     // Check if the email is already registered
-    const existingUser = await User.findOne({ emailId: otherFields.emailId });
+    const existingUser = await User.findOne({ emailId: userData.emailId });
     if (existingUser) {
       return res.status(400).json({ error: "Email is already registered" });
     }
-
-    // Hash the password
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    // Combine hashed password with other fields
-    const userData = {
-      ...otherFields,
-      password: passwordHash,
-    };
 
     // Create and save the user
     const user = new User(userData);
