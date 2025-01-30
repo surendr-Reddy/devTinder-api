@@ -1,20 +1,19 @@
 const express = require('express');
-const { model } = require('mongoose');
-const profileRouter= express.Router();
+const profileRouter = express.Router();
+const bcrypt = require('bcrypt')
 
-profileRouter.get('/getProfile',(req,res)=>{
-    const userDeatils=req.user;
-    res.status(201).json({status:"success",data:{userDeatils}})
+profileRouter.get('/getProfile', (req, res) => {
+    const userDetails = req.user;
+    res.status(201).json({ status: "success", data: { userDetails } })
 
 })
 
-profileRouter.post('/updateProfile',async (req,res)=>{
-    try{
-        const editUserDetails =req.body
-        const userDeatils=req.user;
-       
-        // Define the allowed fields (the ones defined in the schema)
-        const allowedFields = ['name', 'age', 'address']; // Replace this with your actual schema fields
+profileRouter.patch('/updateProfile', async (req, res) => {
+    try {
+        const editUserDetails = req.body
+        const userDetails = req.user;
+
+        const allowedFields = ['firstName', 'lastName', 'age', 'address', 'city', 'about', 'skills'];
 
         // Ensure the provided fields are part of the allowed schema fields
         const invalidFields = Object.keys(editUserDetails).filter(field => !allowedFields.includes(field));
@@ -23,40 +22,68 @@ profileRouter.post('/updateProfile',async (req,res)=>{
             throw new Error(`Invalid fields: ${invalidFields.join(', ')}`);
         }
         // Update user details
-        // userDeatils.firstName = editUserDetails.firstName;
-        // userDeatils.lastName = editUserDetails.lastName;
-        // userDeatils.phoneNumber = editUserDetails.phoneNumber;
-        // userDeatils.city = editUserDetails.city;
-        // userDeatils.age = editUserDetails.age;
-        // userDeatils.gender = editUserDetails.gender;
-        // userDeatils.about = editUserDetails.about;
-        // userDeatils.skills = editUserDetails.skills;
+        // userDetails.firstName = editUserDetails.firstName;
+        // userDetails.lastName = editUserDetails.lastName;
+        // userDetails.phoneNumber = editUserDetails.phoneNumber;
+        // userDetails.city = editUserDetails.city;
+        // userDetails.age = editUserDetails.age;
+        // userDetails.gender = editUserDetails.gender;
+        // userDetails.about = editUserDetails.about;
+        // userDetails.skills = editUserDetails.skills;
 
 
-        // Iterate over the keys of editUserDetails and update userDeatils if the field exists
+        // Iterate over the keys of editUserDetails and update userDetails if the field exists
         // Object.keys(editUserDetails).forEach((key)=>{
         //     if(editUserDetails[key]!=null || editUserDetails[key]!=undefined){
-        //         userDeatils[key]=editUserDetails[key]
+        //         userDetails[key]=editUserDetails[key]
         //     }
         //  })
         //Direct Assignment can overwrite fields with undefined if they are not provided.
         //Looping over the payload ensures only fields that are present get updated, preserving all other fields.
         //so
-        // Loop through the keys of editUserDetails and update userDeatils only if the field exists in the request
+        // Loop through the keys of editUserDetails and update userDetails only if the field exists in the request
         if (!editUserDetails || Object.keys(editUserDetails).length === 0) {
             throw new Error("No data provided in the request body.");
         }
-         Object.entries(editUserDetails).forEach(([key, value]) => {
+        Object.entries(editUserDetails).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
-                userDeatils[key] = value;
+                userDetails[key] = value;
             }
         });
-        await userDeatils.save();
-        res.status(201).json({status:"success",message:"User Profile updated successfuly",data:{userDeatils}})
-    }catch(err){
-        res.status(400).json({status:"Error",message:err.message,data:{type:err.name || 'Unknown Error' }})
+        await userDetails.save();
+        res.status(201).json({ status: "success", message: "User Profile updated successfuly", data: { userDetails } })
+    } catch (err) {
+        res.status(400).json({ status: "Error", message: err.message, data: { type: err.name || 'Unknown Error' } })
     }
-    
+
 })
 
-module.exports={profileRouter}
+profileRouter.patch('/updatePassword', async (req, res) => {
+    try {
+        const userDetails = req.user
+        const updatePassword = req.body
+
+        const allowedFields = ['existingPassword', 'newPassword']
+        const invaildFields = Object.keys(updatePassword).filter(filed => !allowedFields.includes(filed))
+        if (invaildFields.length > 0) {
+            return res.status(400).json({ status: "Error", message: `Invalid fields: ${invalidFields.join(', ')}`, data: { type: "ValidationError" } });
+        }
+        const { existingPassword, newPassword } = updatePassword
+        if (!existingPassword && !newPassword) {
+            return res.status(400).json({ status: "Error", message: "Both existing and new passwords are required.", data: { type: "ValidationError" } });
+        }
+        if (existingPassword === newPassword) {
+            return res.status(400).json({ status: "Error", message: "Existing password and new password cannot be the same.", data: { type: "ValidationError" } });
+        }
+        const isvaildpassword = await userDetails.validatePassword(existingPassword);
+        if (!isvaildpassword) {
+            return res.status(401).json({ status: 'Eroor', message: 'entered curent password is incorrect', data: { type: 'AuthenticationError' } })
+        }
+        userDetails.password = await bcrypt.hash(newPassword, 10);
+        await userDetails.save();
+        res.status(201).json({ status: "success", message: "password updated successfuly" })
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message, data: { type: err.name || "InternalError" } })
+    }
+})
+module.exports = { profileRouter }
