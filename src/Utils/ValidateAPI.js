@@ -22,5 +22,11 @@ const validateAPI = (req) => {
     throw new Error("Password must be strong (at least 8 characters, including letters, numbers, and special characters).");
   }
 };
+const validatePassword=(password)=>{
+if(!validator.isStrongPassword(password)){
+return false
+}
+return true;
+}
 
-module.exports = { validateAPI };
+module.exports = { validateAPI,validatePassword };

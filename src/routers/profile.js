@@ -1,6 +1,7 @@
 const express = require('express');
 const profileRouter = express.Router();
 const bcrypt = require('bcrypt')
+const { validatePassword } = require('../utils/ValidateAPI')
 
 profileRouter.get('/getProfile', (req, res) => {
     const userDetails = req.user;
@@ -13,7 +14,7 @@ profileRouter.patch('/updateProfile', async (req, res) => {
         const editUserDetails = req.body
         const userDetails = req.user;
 
-        const allowedFields = ['firstName', 'lastName', 'age', 'address', 'city', 'about', 'skills'];
+        const allowedFields = ['firstName', 'lastName', 'age', 'address', 'city', 'about', 'skills', 'phoneNumber'];
 
         // Ensure the provided fields are part of the allowed schema fields
         const invalidFields = Object.keys(editUserDetails).filter(field => !allowedFields.includes(field));
@@ -75,13 +76,19 @@ profileRouter.patch('/updatePassword', async (req, res) => {
         if (existingPassword === newPassword) {
             return res.status(400).json({ status: "Error", message: "Existing password and new password cannot be the same.", data: { type: "ValidationError" } });
         }
-        const isvaildpassword = await userDetails.validatePassword(existingPassword);
-        if (!isvaildpassword) {
+        const existingDbValidPassword = await userDetails.validatePassword(existingPassword);
+        if (!existingDbValidPassword) {
             return res.status(401).json({ status: 'Eroor', message: 'entered curent password is incorrect', data: { type: 'AuthenticationError' } })
         }
-        userDetails.password = await bcrypt.hash(newPassword, 10);
-        await userDetails.save();
-        res.status(201).json({ status: "success", message: "password updated successfuly" })
+        const isvaildpassword = validatePassword(newPassword);
+        if (isvaildpassword) {
+            userDetails.password = await bcrypt.hash(newPassword, 10);
+            await userDetails.save();
+            res.status(201).json({ status: "success", message: "password updated successfuly" })
+        }
+        else {
+            res.status(400).json({ status: "Error", message: "Password must be strong (at least 8 characters, including letters, numbers, and special characters)." })
+        }
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message, data: { type: err.name || "InternalError" } })
     }
