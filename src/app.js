@@ -4,6 +4,7 @@ const cookieparser = require("cookie-parser");
 const { authvalidate } = require("./middlewares/auth");
 const authrouter = require("./routers/authentication ");
 const {profileRouter} = require('./routers/profile')
+const {requestRouter}=require("./routers/request")
 
 const app = express();
 app.use(express.json());
@@ -13,6 +14,8 @@ app.use(cookieparser());
 app.use('/', authrouter);
 //profile router
 app.use('/profile', authvalidate, profileRouter)
+//request Router
+app.use('/request',authvalidate,requestRouter);
 
 // added the auth Midelwear Varifiaction
 app.get("/profile1", authvalidate,  (req, res) => {
