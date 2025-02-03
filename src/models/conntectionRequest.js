@@ -1,6 +1,6 @@
 const { mongoose } = require("mongoose");
 
-const connectionRequestSchema = mongoose.Schema(
+const connectionRequestSchema = new mongoose.Schema(
   {
     fromUserId: { type:  mongoose.Schema.Types.ObjectId, required: true },
     toUserId: { type:  mongoose.Schema.Types.ObjectId, required: true },
@@ -25,7 +25,8 @@ const connectionRequestSchema = mongoose.Schema(
       },
     },
   },
-  { timeStamps: true }
+  //the keys should be in small laters
+  { timestamps: true }
 );
 connectionRequestSchema.pre("save", function (next) {
   const connectionRequest = this;
@@ -37,5 +38,5 @@ connectionRequestSchema.pre("save", function (next) {
   }
   next();
 });
-const connectionRequestModel = mongoose.model("connectionRequestSchema", connectionRequestSchema)
+const connectionRequestModel = mongoose.model("ConnectionRequest", connectionRequestSchema)
 module.exports = { connectionRequestModel }

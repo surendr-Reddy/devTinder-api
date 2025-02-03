@@ -4,7 +4,7 @@ const requestRouter = express.Router();
 const { connectionRequestModel } = require("../models/conntectionRequest");
 const { User } = require("../models/UserModel");
 
-requestRouter.get("/send/:status/:userId", async (req, res) => {
+requestRouter.post("/send/:status/:userId", async (req, res) => {
   try {
     const user = req.user;
     const userID = user._id;
@@ -44,11 +44,11 @@ requestRouter.get("/send/:status/:userId", async (req, res) => {
     });
 
     await connectionRequest.save();
-    res.status(201).json({ status: "Success", message: "Request sent successfully", data: connectionRequest });
+    res.status(201).json({ Status: "Success", Message: "Request sent successfully", Data: connectionRequest });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ status: "Error", message: "Failed to send request", error: err.message });
+    res.status(500).json({ Status: "Error", Message: "Failed to send request", Error: err.message });
   }
 });
 
