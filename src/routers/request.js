@@ -1,51 +1,55 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const requestRouter = express.Router();
-const mongoose =require("mongoose")
 const { connectionRequestModel } = require("../models/conntectionRequest");
-const { User } = require("../models/UserModel")
+const { User } = require("../models/UserModel");
+
 requestRouter.get("/send/:status/:userId", async (req, res) => {
   try {
     const user = req.user;
-    const userID = user._id
-
-
-    const touserId = req.params.userId;
+    const userID = user._id;
+    const toUserId = req.params.userId;
     const status = req.params.status;
-    if (!status) {
-      return res.status(400).json({ status: "Error", message: "status Not Found" })
-    }
-    const allowedFields = ["interested", 'ignore'];
-    const isStatusAllowed = allowedFields.includes(status)
 
-
-
-    if (!isStatusAllowed) {
-      return res.status(400).json({ status: "Error", message: `status ${status} not Allowed` })
+    // Validate status
+    const allowedStatuses = ["interested", "ignore"];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ status: "Error", message: `Invalid status: ${status}` });
     }
-    const isValidToUserId = await User.findById({ _id: touserId })
-    if (!touserId || !isValidToUserId||mongoose.Types.ObjectId.isValid(touserId)) {
-      return res.status(404).json({ status: "Error", message: "User Not Found!" })
+
+    // Validate User ID
+    if (!mongoose.Types.ObjectId.isValid(toUserId)) {
+      return res.status(400).json({ status: "Error", message: "Invalid User ID format!" });
     }
-    // find() gives the return [] or array of result so used findone
+
+    const isValidToUser = await User.findById(toUserId);
+    if (!isValidToUser) {
+      return res.status(404).json({ status: "Error", message: "User Not Found!" });
+    }
+
+    // Check if connection request already exists used shot hand variables (must be same as schema then we can use shorthand)
     const existingConnectionRequest = await connectionRequestModel.findOne({
-      $or: [{ fromUserId:userID, toUserId:touserId }, { fromUserId: touserId, toUserId: userID }]
-    })
-    console.log(existingConnectionRequest);
-
+      $or: [{ fromUserId: userID, toUserId }, { fromUserId: toUserId, toUserId: userID }]
+    });
 
     if (existingConnectionRequest) {
-      return res.status(400).json({ status: "Error", message: "Connection Request Already Exists!!" })
+      return res.status(400).json({ status: "Error", message: "Connection Request Already Exists!" });
     }
 
-    const data = { fromUserId: userID, toUserId: touserId, status: status };
-    const connectionRequest = new connectionRequestModel(
-      data,
-    );
-    await connectionRequest.save();
-    res.status(201).json({ status: "success", message: "request sent successfuly", data: connectionRequest })
-  } catch (err) {
-    res.status(500).json({ status: "Error", message: "fail to send request", data: { Type: err.message } })
-  }
+    // Create a new connection request
+    const connectionRequest = new connectionRequestModel({
+      fromUserId: userID,
+      toUserId,
+      status
+    });
 
+    await connectionRequest.save();
+    res.status(201).json({ status: "Success", message: "Request sent successfully", data: connectionRequest });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: "Error", message: "Failed to send request", error: err.message });
+  }
 });
+
 module.exports = { requestRouter };
