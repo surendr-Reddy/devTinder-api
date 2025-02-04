@@ -14,7 +14,7 @@ const connectionRequestSchema = new mongoose.Schema(
       // enum: ["interested", "ignore"],
       validate: {
         validator: (vaule) => {
-          const allwedfiled = ["interested", "ignore"];
+          const allwedfiled = ["interested", "ignore","accepted","rejected"];
           const isvalid = allwedfiled.includes(vaule) //the vaule single string so we can use this but if it is array then use bellow
           //   const isvalid = allwedfiled.some((filed) => {
           //     vaule.includes(filed); // here the vaule is string so we cant use the .includes

@@ -62,8 +62,8 @@ requestRouter.post("/review/:status/:requestId", async (req, res) => {
     // this API is only for changing the status that was already sent by another user, so the 'toUserId' is the logged-in user, and this logged-in user can change the status from 'interested' to 'accepted' or 'rejected' based on this logic
   const loginUser= req.user
   const {status,requestId} = req.params
-  const allowedStatus=["accpeted","rejected"]
-  if(allowedStatus.includes(status)){
+  const allowedStatus=["accepted","rejected"]
+  if(!allowedStatus.includes(status)){
     return res.status(400).json({status:"Error",message:"invalid status Type"})
   }
   if(!mongoose.Types.ObjectId.isValid(requestId)){
@@ -79,7 +79,7 @@ requestRouter.post("/review/:status/:requestId", async (req, res) => {
   }
   reviewRequest.status=status;
   await reviewRequest.save()
-
+  res.status(201).json({ status: "success", message: "ConnectionRequest sent succesfuly",data:reviewRequest });
    } catch (err) { 
     res.status(500).json({ Status: "Error", Message: "Failed to send request", Error: err.message });
    }
