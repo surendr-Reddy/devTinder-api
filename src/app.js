@@ -5,6 +5,7 @@ const { authvalidate } = require("./middlewares/auth");
 const authrouter = require("./routers/authentication ");
 const {profileRouter} = require('./routers/profile')
 const {requestRouter}=require("./routers/request")
+const {userRouter}=require("./routers/user")
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,8 @@ app.use('/', authrouter);
 app.use('/profile', authvalidate, profileRouter)
 //request Router
 app.use('/request',authvalidate,requestRouter);
+//user request
+app.use('/user',authvalidate,userRouter);
 
 // added the auth Midelwear Varifiaction
 app.get("/profile1", authvalidate,  (req, res) => {
