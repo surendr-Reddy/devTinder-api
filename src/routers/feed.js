@@ -8,8 +8,9 @@ feedRouter.get("/feed", async (req, res) => {
         const page = parseInt(req.query.page) || 1
         // to check the vaule is true or false if vaule 0 then parseInt(req.query.page) retrun 0 and then 0 consider as false so or oparter will consider 1 vaule even page=0
         // console.log(Boolean(parseInt(req.query.page))); // false for page=0
-        
-        const limit = req.query.limit || 10
+
+        let limit = req.query.limit || 10
+        limit = limit > 50 ? 50 : limit
         //  const skip=(page*limit) for page 0
         if (req.query.page <= 0) {
             res.status(400).json({
