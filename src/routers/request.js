@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const requestRouter = express.Router();
-const { connectionRequestModel } = require("../models/conntectionRequest");
+const { ConnectionRequestModel } = require("../models/conntectionRequest");
 const { User } = require("../models/UserModel");
 
 requestRouter.post("/send/:status/:userId", async (req, res) => {
@@ -28,7 +28,7 @@ requestRouter.post("/send/:status/:userId", async (req, res) => {
     }
 
     // Check if connection request already exists used shot hand variables (must be same as schema then we can use shorthand)
-    const existingConnectionRequest = await connectionRequestModel.findOne({
+    const existingConnectionRequest = await ConnectionRequestModel.findOne({
       $or: [{ fromUserId: userID, toUserId }, { fromUserId: toUserId, toUserId: userID }]
     });
 
@@ -37,7 +37,7 @@ requestRouter.post("/send/:status/:userId", async (req, res) => {
     }
 
     // Create a new connection request
-    const connectionRequest = new connectionRequestModel({
+    const connectionRequest = new ConnectionRequestModel({
       fromUserId: userID,
       toUserId,
       status
@@ -69,7 +69,7 @@ requestRouter.post("/review/:status/:requestId", async (req, res) => {
   if(!mongoose.Types.ObjectId.isValid(requestId)){
     return res.status(400).json({ status: "Error", message: "Invalid Request ID format!" });
   }
-  const reviewRequest= await connectionRequestModel.findOne({
+  const reviewRequest= await ConnectionRequestModel.findOne({
     _id:requestId,
     toUserId:loginUser._id,
     status:"interested"

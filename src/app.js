@@ -6,6 +6,8 @@ const authrouter = require("./routers/authentication ");
 const {profileRouter} = require('./routers/profile')
 const {requestRouter}=require("./routers/request")
 const {userRouter}=require("./routers/user")
+const {testfeedRequestRouter}= require("./routers/testFeed");
+const { feedRouter } = require("./routers/feed");
 
 const app = express();
 app.use(express.json());
@@ -19,11 +21,11 @@ app.use('/profile', authvalidate, profileRouter)
 app.use('/request',authvalidate,requestRouter);
 //user request Router
 app.use('/user',authvalidate,userRouter);
+// user feed Router
+app.use('/user',authvalidate,feedRouter);
+app.use('/user',authvalidate,testfeedRequestRouter);
 
-// added the auth Midelwear Varifiaction
-app.get("/profile1", authvalidate,  (req, res) => {
-  res.send(req.user);
-});
+
 
 mongooseConnection().then(() =>
   app.listen(7777, () => {
