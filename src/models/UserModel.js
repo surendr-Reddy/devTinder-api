@@ -79,14 +79,14 @@ const userSchema = mongoose.Schema(
   }
 );
 
-// userSchema.pre("save", async function (next) {
-//   // Hash password only if it's newly created
-//   if (this.isNew) {
-//     const salt = await bcrypt.genSalt(10);
-//     this.password = await bcrypt.hash(this.password, salt);
-//   }
-//   next(); //next() function ensures that the save operation continues.
-// });
+userSchema.pre("save", async function (next) {
+  // Hash password only if it's newly created
+  if (this.isNew) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
+  next(); //next() function ensures that the save operation continues.
+});
 
 // Generate JWT token
 userSchema.methods.getJwt = async function () {
