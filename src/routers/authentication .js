@@ -57,8 +57,9 @@ authrouter.post("/login", async (req, res) => {
     if (isPasswordValid) {
       const jwtToken = await userDetails.getJwt();
 
+
       res.cookie("token", jwtToken);
-      return res.status(200).send("Login successful.");
+      return res.status(200).send(userDetails);
     } else {
       return res.status(401).send("Invalid credentials.");
     }
