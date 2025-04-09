@@ -1,7 +1,7 @@
 const express = require('express');
 const profileRouter = express.Router();
 const bcrypt = require('bcrypt')
-const { validatePassword } = require('../utils/ValidateAPI')
+const { validatePassword } = require('../Utils/ValidateAPI')
 
 profileRouter.get('/getProfile', (req, res) => {
     const userDetails = req.user;

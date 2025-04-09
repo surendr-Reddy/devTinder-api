@@ -22,6 +22,6 @@ const authvalidate = async (req, res, next) => {
       req.user = userDetalis;
       next();
     }
-  } catch (err) {res.status(400).json({Error: err.message})}
+  } catch (err) {res.status(401).json({Error: err.message})}
 };
 module.exports = { authvalidate };
