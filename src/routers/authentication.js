@@ -73,8 +73,9 @@ authrouter.post("/login", async (req, res) => {
 
 authrouter.get("/logout", (req, res) => {
    // Clear the cookie
-   // or res.cookie('token',null, {expries:{new date(date.now())}})
-   res.clearCookie("token", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Strict" });
+   //or
+    res.cookie('token',null, {expires:new Date(Date.now())})
+    //res.clearCookie("token", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Strict" });
    res.status(201).json({ message: "user logout succesfuly" });
 });
 module.exports = authrouter;
